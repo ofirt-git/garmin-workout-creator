@@ -18,8 +18,10 @@ setup(
     author="Ofir Talmor",
     python_requires=">=3.8",
     packages=find_packages(),
+    py_modules=["cli"],  # Include cli.py as a standalone module
     install_requires=[
         "anthropic>=0.18.0",
+        "google-genai>=1.0.0",
         "pydantic>=2.0.0",
         "garth>=0.4.0",
         "typer>=0.9.0",

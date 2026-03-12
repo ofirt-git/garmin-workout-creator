@@ -12,6 +12,10 @@ from typing import Optional
 from rich.console import Console
 from rich.panel import Panel
 from rich.syntax import Syntax
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 from workout_parser import WorkoutParser
 from garmin_uploader import GarminUploader

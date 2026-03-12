@@ -4,11 +4,12 @@ Create Garmin Connect workouts from natural language descriptions using AI.
 
 ## Overview
 
-This tool allows you to describe a workout in plain English and automatically generate a structured workout in your Garmin Connect account. It uses Claude AI to parse natural language and the unofficial Garmin Connect API to upload workouts.
+This tool allows you to describe a workout in plain English and automatically generate a structured workout in your Garmin Connect account. It uses AI (Google Gemini by default, or Claude AI) to parse natural language and the unofficial Garmin Connect API to upload workouts.
 
 ## Features
 
 - **Natural Language Parsing**: Describe workouts in free text (e.g., "5 minute warm up, 6x800m at 5k pace with 400m recovery")
+- **Multiple AI Backends**: Use Google Gemini (free, default) or Claude AI for parsing
 - **Modular Architecture**: Separate parsing and upload modules for flexibility
 - **Multiple Sports**: Support for running, cycling, swimming, and more
 - **Complex Workouts**: Handles intervals, repeats, zones, and various targets
@@ -23,7 +24,7 @@ The tool consists of two independent modules:
 2. **garmin_uploader**: Converts JSON workout definition → Garmin Connect workout
 
 This separation allows you to:
-- Use different parsing methods (LLM-based, rule-based, etc.)
+- Use different parsing methods (Google Gemini, Claude AI, etc.)
 - Manually edit JSON before uploading
 - Integrate with other workout generation tools
 
@@ -32,7 +33,8 @@ This separation allows you to:
 ### Prerequisites
 
 - Python 3.8 or higher
-- Anthropic API key ([get one here](https://console.anthropic.com/))
+- Google API key for Gemini ([get one free here](https://aistudio.google.com/apikey)) OR
+- Anthropic API key for Claude ([get one here](https://console.anthropic.com/))
 - Garmin Connect account
 
 ### Install from source
@@ -46,23 +48,90 @@ cd garmin-workout-creator
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-# Install dependencies
-pip install -r requirements.txt
-
-# Install the package
+# Install the package (this installs all dependencies and creates the garmin-workout command)
 pip install -e .
 ```
 
+**Important**: The `pip install -e .` command is required to create the `garmin-workout` CLI command. Without this step, the command won't be available in your terminal.
+
+**Verify Installation**
+
+After installing, verify the command is available:
+```bash
+garmin-workout --help
+```
+
+You should see the list of available commands. If you get "command not found", the Python bin directory may not be in your PATH. Try one of these solutions:
+
+**Option A: Add Python bin to PATH** (recommended)
+```bash
+# Find where it was installed
+pip show garmin-workout-creator | grep Location
+
+# Add to PATH (adjust path based on above output)
+export PATH="/Library/Frameworks/Python.framework/Versions/3.14/bin:$PATH"
+
+# Or add to your shell profile (.bashrc, .zshrc, etc.)
+echo 'export PATH="/Library/Frameworks/Python.framework/Versions/3.14/bin:$PATH"' >> ~/.zshrc
+```
+
+**Option B: Use with python -m**
+```bash
+python -m cli parse "your workout description"
+```
+
+**Option C: Use the full path**
+```bash
+# Find the command location
+find /Library/Frameworks/Python.framework -name "garmin-workout" 2>/dev/null
+# Then use the full path
+/Library/Frameworks/Python.framework/Versions/3.14/bin/garmin-workout --help
+```
+
+**Alternative: Run without installation**
+
+If you prefer not to install the package, you can run it directly with Python:
+```bash
+# Install dependencies only
+pip install -r requirements.txt
+
+# Run commands using python cli.py instead of garmin-workout
+python cli.py parse "your workout description"
+python cli.py create "your workout description"
+```
+
 ### Set up API key
+
+**Option 1: Google Gemini (Free, Default)**
 
 ```bash
 # Copy example env file
 cp .env.example .env
 
-# Edit .env and add your Anthropic API key
-echo "ANTHROPIC_API_KEY=your_api_key_here" >> .env
+# Edit .env and add your Google API key
+# Open .env in your editor and set: GOOGLE_API_KEY=your_api_key_here
 
-# Or export directly
+# Or add it via command line
+echo "GOOGLE_API_KEY=your_api_key_here" >> .env
+```
+
+The `.env` file will be automatically loaded when you run commands. Alternatively, you can export it directly in your shell:
+```bash
+export GOOGLE_API_KEY='your_api_key_here'
+```
+
+**Option 2: Claude AI**
+
+```bash
+# Add Anthropic API key to .env
+# Open .env and add: ANTHROPIC_API_KEY=your_api_key_here
+
+# Or add it via command line
+echo "ANTHROPIC_API_KEY=your_api_key_here" >> .env
+```
+
+The `.env` file will be automatically loaded. Alternatively, export it directly:
+```bash
 export ANTHROPIC_API_KEY='your_api_key_here'
 ```
 
@@ -70,10 +139,16 @@ export ANTHROPIC_API_KEY='your_api_key_here'
 
 ### Quick Start
 
-Create and upload a workout in one command:
+Create and upload a workout in one command (uses Google Gemini by default):
 
 ```bash
 garmin-workout create "5 minute warm up, 6x800m at 5k pace with 400m recovery, 5 minute cool down"
+```
+
+To use Claude AI instead:
+
+```bash
+garmin-workout create "5 minute warm up, 6x800m at 5k pace with 400m recovery, 5 minute cool down" --method llm
 ```
 
 ### Command Reference
@@ -81,7 +156,14 @@ garmin-workout create "5 minute warm up, 6x800m at 5k pace with 400m recovery, 5
 #### 1. Parse only (generate JSON)
 
 ```bash
+# Uses Gemini by default, saves to output/workout_TIMESTAMP.json
+garmin-workout parse "10 minute easy run, then 4x1 mile at threshold with 2 min recovery"
+
+# Specify output file
 garmin-workout parse "10 minute easy run, then 4x1 mile at threshold with 2 min recovery" -o workout.json
+
+# Use Claude AI instead
+garmin-workout parse "10 minute easy run, then 4x1 mile at threshold with 2 min recovery" --method llm
 ```
 
 #### 2. Upload existing JSON
@@ -93,11 +175,17 @@ garmin-workout upload workout.json
 #### 3. Create and upload (combined)
 
 ```bash
-# With confirmation prompt
+# With confirmation prompt (uses Gemini by default)
 garmin-workout create "20 minute tempo run at 10k pace"
 
 # Skip confirmation
 garmin-workout create "3x5k at marathon pace with 3 minute recovery" --yes
+
+# Use Claude AI
+garmin-workout create "20 minute tempo run at 10k pace" --method llm
+
+# Override workout name
+garmin-workout create "20 minute tempo run" --name "Tuesday Tempo"
 ```
 
 #### 4. Validate JSON
@@ -220,8 +308,12 @@ You can also use the modules directly in Python:
 from workout_parser import WorkoutParser
 from garmin_uploader import GarminUploader
 
-# Parse a workout
-parser = WorkoutParser(method="llm", api_key="your-api-key")
+# Parse a workout with Gemini (default)
+parser = WorkoutParser(method="gemini", api_key="your-google-api-key")
+workout_json = parser.parse_to_json("5 min warmup, 10x400m at 5k pace with 200m jog recovery")
+
+# Or use Claude AI
+parser = WorkoutParser(method="llm", api_key="your-anthropic-api-key")
 workout_json = parser.parse_to_json("5 min warmup, 10x400m at 5k pace with 200m jog recovery")
 
 # Upload to Garmin
@@ -234,7 +326,8 @@ print(f"Workout URL: {result['url']}")
 
 ### Environment Variables
 
-- `ANTHROPIC_API_KEY`: Required for parsing workouts
+- `GOOGLE_API_KEY`: Required for Gemini parsing (default method)
+- `ANTHROPIC_API_KEY`: Required for Claude AI parsing (when using `--method llm`)
 - `GARMIN_EMAIL`: Optional, Garmin Connect email
 - `GARMIN_PASSWORD`: Optional, Garmin Connect password (not recommended)
 
@@ -249,7 +342,7 @@ garmin-workout logout
 ## How It Works
 
 1. **Natural Language Input**: You describe your workout in plain English
-2. **AI Parsing**: Claude AI converts the description to structured JSON
+2. **AI Parsing**: Google Gemini (or Claude AI) converts the description to structured JSON
 3. **Validation**: Pydantic validates the workout structure
 4. **Transformation**: JSON is converted to Garmin Connect API format
 5. **Upload**: Workout is uploaded via the unofficial Garmin API
@@ -264,7 +357,14 @@ garmin-workout logout
 
 ## Troubleshooting
 
-### "ANTHROPIC_API_KEY not set"
+### "GOOGLE_API_KEY not set"
+
+```bash
+export GOOGLE_API_KEY='your-key-here'
+# Get a free key at: https://aistudio.google.com/apikey
+```
+
+### "ANTHROPIC_API_KEY not set" (when using --method llm)
 
 ```bash
 export ANTHROPIC_API_KEY='your-key-here'
@@ -282,10 +382,17 @@ export ANTHROPIC_API_KEY='your-key-here'
 - Try simpler language
 - Check the examples above for guidance
 
-### "Import Error: No module named 'garth'"
+### Import errors
 
 ```bash
+# Install all required dependencies
 pip install -r requirements.txt
+
+# If google-genai is missing:
+pip install google-genai
+
+# If garth is missing:
+pip install garth
 ```
 
 ## Development
@@ -296,6 +403,7 @@ pip install -r requirements.txt
 garmin-workout-creator/
 ├── workout_parser/          # Module 1: Natural language → JSON
 │   ├── models.py           # Pydantic models
+│   ├── gemini_parser.py    # Google Gemini integration
 │   ├── llm_parser.py       # Claude AI integration
 │   └── parser.py           # Main parser interface
 ├── garmin_uploader/         # Module 2: JSON → Garmin
@@ -324,8 +432,10 @@ The architecture supports pluggable parsing methods:
 ```python
 # In workout_parser/parser.py
 class WorkoutParser:
-    def __init__(self, method="llm", **kwargs):
-        if method == "llm":
+    def __init__(self, method="gemini", **kwargs):
+        if method == "gemini":
+            self.parser = GeminiWorkoutParser(...)
+        elif method == "llm":
             self.parser = LLMWorkoutParser(...)
         elif method == "rule_based":  # Add new method
             self.parser = RuleBasedParser(...)
@@ -335,7 +445,7 @@ class WorkoutParser:
 
 Contributions are welcome! Areas for improvement:
 
-- Additional parsing methods (rule-based, other LLMs)
+- Additional parsing methods (rule-based, other LLMs like OpenAI)
 - Support for more workout types and features
 - Better pace personalization
 - Unit tests
@@ -347,6 +457,7 @@ MIT License - see LICENSE file for details
 
 ## Acknowledgments
 
+- [Google](https://ai.google.dev/) for Gemini API
 - [Anthropic](https://www.anthropic.com/) for Claude AI
 - [garth](https://github.com/matin/garth) for Garmin Connect API access
 - Garmin Connect community for API documentation
