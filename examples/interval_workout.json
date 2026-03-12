@@ -1,0 +1,55 @@
+{
+  "workout_name": "Classic 800m Intervals",
+  "sport_type": "running",
+  "description": "6x800m at 5K pace with 400m recovery",
+  "steps": [
+    {
+      "step_id": 1,
+      "step_type": "warmup",
+      "duration_type": "time",
+      "duration_value": 300,
+      "duration_unit": "seconds",
+      "target_type": "open",
+      "target_value": null
+    },
+    {
+      "step_id": 2,
+      "step_type": "repeat",
+      "repeat_count": 6,
+      "target_type": "open",
+      "steps": [
+        {
+          "step_id": 3,
+          "step_type": "interval",
+          "duration_type": "distance",
+          "duration_value": 800,
+          "duration_unit": "meters",
+          "target_type": "pace",
+          "target_value": {
+            "min_pace": 225,
+            "max_pace": 255,
+            "unit": "seconds_per_km"
+          }
+        },
+        {
+          "step_id": 4,
+          "step_type": "recovery",
+          "duration_type": "distance",
+          "duration_value": 400,
+          "duration_unit": "meters",
+          "target_type": "open",
+          "target_value": null
+        }
+      ]
+    },
+    {
+      "step_id": 5,
+      "step_type": "cooldown",
+      "duration_type": "time",
+      "duration_value": 300,
+      "duration_unit": "seconds",
+      "target_type": "open",
+      "target_value": null
+    }
+  ]
+}
