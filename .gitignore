@@ -46,6 +46,9 @@ ENV/
 # Generated workout outputs
 output/
 
+# Research and planning documents
+research/
+
 # Test outputs (ignore all JSON except examples)
 *.json
 !examples/*.json
