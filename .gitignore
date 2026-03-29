@@ -53,6 +53,38 @@ research/
 *.json
 !examples/*.json
 
+# Frontend (Node.js)
+frontend/node_modules/
+frontend/dist/
+frontend/.env.local
+frontend/.env.production
+
+# Backend
+backend/.env
+backend/alembic/versions/*.pyc
+*.db
+*.sqlite
+
+# Docker
+docker-compose.override.yml
+
+# Logs
+*.log
+logs/
+
+# Testing
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Database
+*.sql
+*.dump
+
+# Temporary files
+*.tmp
+.temp/
+
 # OS
 .DS_Store
 Thumbs.db
